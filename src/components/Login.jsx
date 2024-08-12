@@ -5,6 +5,7 @@ const Login = ({ onLogin }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
+  const logo = '/Logo.svg';
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -17,7 +18,10 @@ const Login = ({ onLogin }) => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white p-8 rounded shadow-md w-96">
+      <div className='d-inline'>
       <h1 className="text-4xl font-bold mb-4">NetChat</h1>
+      <img src={logo} alt="NetChat Logo" className="w-14 h-14" />  
+      </div>
       <h2 className="text-2xl font-bold mb-4">por Renatto Guzmán</h2>
         <h2 className="text-2xl font-bold mb-4">Login</h2>
         <form onSubmit={handleSubmit}>
