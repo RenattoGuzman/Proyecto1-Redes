@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { PlusCircle, Users, MessageSquare } from 'lucide-react';
+import { PlusCircle, Users, MessageSquare, LogOut } from 'lucide-react';
 import { Strophe, $pres, $msg } from 'strophe.js';
 
-const Chat = ({ connection }) => {
+const Chat = ({ connection, onLogout }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [contacts, setContacts] = useState([]);
@@ -20,6 +20,7 @@ const Chat = ({ connection }) => {
     }
   }, [connection]);
 
+  
   const onMessage = (msg) => {
     const from = msg.getAttribute('from');
     const type = msg.getAttribute('type');
@@ -69,6 +70,14 @@ const Chat = ({ connection }) => {
     }
   };
 
+  const handleLogout = () => {
+    if (connection) {
+      connection.disconnect();
+    }
+    onLogout();
+  };
+
+
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
@@ -83,10 +92,14 @@ const Chat = ({ connection }) => {
           </button>
           <button 
             onClick={() => setShowCreateGroup(true)} 
-            className="flex items-center text-blue-500"
+            className="flex items-center text-blue-500 mb-2"
           >
             <Users size={18} className="mr-2" /> Create Group
           </button>
+          
+
+
+
         </div>
         <div className="px-4 pb-4">
           <h3 className="font-medium mb-2">Contacts</h3>
@@ -112,6 +125,16 @@ const Chat = ({ connection }) => {
             </div>
           ))}
         </div>
+
+        <div className="absolute bottom-0 w-full p-4">
+        <button 
+            onClick={handleLogout} 
+            className="flex items-center text-red-500"
+          >
+            <LogOut size={18} className="mr-2" /> Logout
+          </button>
+        </div>
+
       </div>
 
       {/* Chat Area */}

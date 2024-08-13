@@ -15,7 +15,13 @@ const App = () => {
     setIsAuthenticated(true);
   };
 
+  const handleLogout = () => {
+    setConnection(null);
+    setIsAuthenticated(false);
+  };
+
   console.log('connection ==>> ', connection);
+
 
   return (
     <Router>
@@ -32,8 +38,9 @@ const App = () => {
           path="/chat" 
           element={
             isAuthenticated ? 
-            <Chat connection={connection} /> : 
+            <Chat connection={connection} onLogout={handleLogout} /> : 
             <Navigate to="/login" />
+
           } 
         />
         <Route path="/" element={<Navigate to="/login" />} />
@@ -41,5 +48,6 @@ const App = () => {
     </Router>
   );
 };
+
 
 export default App;
