@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@xmpp/client": "^0.13.1",
     "bootstrap": "^5.3.2",
     "buffer": "^6.0.3",
     "leaflet": "^1.9.4",
@@ -27,6 +28,7 @@
     "react-select": "^5.8.0",
     "sass": "^1.63.2",
     "sheetjs-style": "^0.15.8",
+    "strophe.js": "^3.0.0",
     "sweetalert": "^2.1.2",
     "sweetalert2": "^11.10.1"
   },

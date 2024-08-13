@@ -1,24 +1,42 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import Login from './components/Login';
 import Chat from './components/Chat';
 
+import { Buffer } from 'buffer';
+window.Buffer = Buffer;
 const App = () => {
-  const [isLoggedIn, setIsLoggedIn] = React.useState(false);
+  const [connection, setConnection] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  const handleLogin = () => {
-    setIsLoggedIn(true);
+  const handleLogin = (conn) => {
+    console.log('conn ==>> ', conn);
+    setConnection(conn);
+    setIsAuthenticated(true);
   };
+
+  console.log('connection ==>> ', connection);
 
   return (
     <Router>
       <Routes>
-        <Route path="/login" element={<Login onLogin={handleLogin} />} />
-        <Route
-          path="/chat"
-          element={isLoggedIn ? <Chat /> : <Navigate to="/login" replace />}
+        <Route 
+          path="/login" 
+          element={
+            isAuthenticated ? 
+            <Navigate to="/chat" /> : 
+            <Login onLogin={handleLogin} />
+          } 
         />
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route 
+          path="/chat" 
+          element={
+            isAuthenticated ? 
+            <Chat connection={connection} /> : 
+            <Navigate to="/login" />
+          } 
+        />
+        <Route path="/" element={<Navigate to="/login" />} />
       </Routes>
     </Router>
   );

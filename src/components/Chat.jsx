@@ -1,11 +1,11 @@
-// components/Chat.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PlusCircle, Users, MessageSquare } from 'lucide-react';
+import { Strophe, $pres, $msg } from 'strophe.js';
 
-const Chat = () => {
+const Chat = ({ connection }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
-  const [contacts, setContacts] = useState(['Alice', 'Bob', 'Charlie']);
+  const [contacts, setContacts] = useState([]);
   const [groups, setGroups] = useState(['Family', 'Work']);
   const [selectedChat, setSelectedChat] = useState(null);
   const [showAddContact, setShowAddContact] = useState(false);
@@ -13,21 +13,47 @@ const Chat = () => {
   const [newContact, setNewContact] = useState('');
   const [newGroup, setNewGroup] = useState('');
 
+  useEffect(() => {
+    if (connection) {
+      console.log('connection ==>> ', connection);
+      connection.addHandler(onMessage, null, 'message', 'chat');
+    }
+  }, [connection]);
+
+  const onMessage = (msg) => {
+    const from = msg.getAttribute('from');
+    const type = msg.getAttribute('type');
+    const body = msg.getElementsByTagName('body')[0];
+
+    if (type === "chat" && body) {
+      const messageText = body.textContent;
+      setMessages(prev => [...prev, { text: messageText, sender: 'bot', chat: Strophe.getBareJidFromJid(from) }]);
+    }
+
+    return true;
+  };
+
   const handleSendMessage = (e) => {
     e.preventDefault();
     if (newMessage.trim() && selectedChat) {
+      const message = $msg({to: selectedChat, type: 'chat'})
+        .c('body')
+        .t(newMessage);
+      
+      connection.send(message);
+
       setMessages([...messages, { text: newMessage, sender: 'user', chat: selectedChat }]);
       setNewMessage('');
-      // Simulate a response (replace with actual chat logic)
-      setTimeout(() => {
-        setMessages(prev => [...prev, { text: 'This is a response', sender: 'bot', chat: selectedChat }]);
-      }, 1000);
     }
   };  
 
   const handleAddContact = (e) => {
     e.preventDefault();
     if (newContact.trim() && !contacts.includes(newContact)) {
+      // Send subscription request
+      const presence = $pres({to: newContact + "@alumchat.lol", type: "subscribe"});
+      connection.send(presence);
+
       setContacts([...contacts, newContact]);
       setNewContact('');
       setShowAddContact(false);
@@ -68,7 +94,7 @@ const Chat = () => {
             <div 
               key={index} 
               className="flex items-center mb-2 cursor-pointer hover:bg-gray-100 p-2 rounded"
-              onClick={() => setSelectedChat(contact)}
+              onClick={() => setSelectedChat(contact + "@alumchat.lol")}
             >
               <MessageSquare size={18} className="mr-2 text-gray-500" />
               {contact}
@@ -100,7 +126,7 @@ const Chat = () => {
                 .filter(message => message.chat === selectedChat)
                 .map((message, index) => (
                   <div key={index} className={`mb-4 ${message.sender === 'user' ? 'text-right' : 'text-left'}`}>
-                    <div className={`inline-block p-2 rounded-lg ${message.sender === 'user' ? 'bg-blue-500 text-white' : 'bg-white text-black'}`}>
+                    <div className={`inline-block p-2 rounded-lg ${message.sender === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-black'}`}>
                       {message.text}
                     </div>
                   </div>
