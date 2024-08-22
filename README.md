@@ -18,7 +18,7 @@
   - [ ] Mostrar estado&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;- 5 puntos
 - [x] Agregar un usuario a los contactos                   - 10 puntos
 - [ ] Mostrar detalles de contacto de un usuario&emsp;&emsp;  - 10 puntos
-- [ ] Comunicación 1 a 1 con cualquier usuario/contacto   
+- [x] Comunicación 1 a 1 con cualquier usuario/contacto   
   - [x] Enviar mensajes&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;   - 5 puntos
   - [x] Recibir mensajes&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  - 5 puntos
 - [ ] Participar en conversaciones grupales

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback} from 'react';
+import React, { useState, useEffect, useCallback, useRef} from 'react';
 import { PlusCircle, Users, MessageSquare, LogOut } from 'lucide-react';
 import { Strophe, $pres, $msg, $iq  } from 'strophe.js';
 
@@ -13,6 +13,8 @@ const Chat = ({ connection, onLogout }) => {
   const [newContact, setNewContact] = useState('');
   const [newGroup, setNewGroup] = useState('');
 
+  const messageHandlerRef = useRef(null);
+
   const onMessage = useCallback((msg) => {
     console.log('msg ==>> ', msg);
     const from = msg.getAttribute('from');
@@ -21,7 +23,18 @@ const Chat = ({ connection, onLogout }) => {
 
     if (type === "chat" && body) {
       const messageText = body.textContent;
-      setMessages(prev => [...prev, { text: messageText, sender: 'bot', chat: Strophe.getBareJidFromJid(from) }]);
+      setMessages(prev => {
+        // Check if this message already exists to prevent duplicates
+        const isDuplicate = prev.some(m => 
+          m.text === messageText && 
+          m.sender === 'bot' && 
+          m.chat === Strophe.getBareJidFromJid(from)
+        );
+        if (!isDuplicate) {
+          return [...prev, { text: messageText, sender: 'bot', chat: Strophe.getBareJidFromJid(from) }];
+        }
+        return prev;
+      });
     }
 
     return true;
@@ -30,27 +43,26 @@ const Chat = ({ connection, onLogout }) => {
   useEffect(() => {
     if (connection) {
       console.log('Setting up message handler');
-      connection.addHandler(onMessage, null, 'message', 'chat');
-
-      // Send initial presence to the server
+      
+      // Remove the previous handler if it exists
+      if (messageHandlerRef.current) {
+        connection.deleteHandler(messageHandlerRef.current);
+      }
+      
+      // Add the new handler and store its reference
+      messageHandlerRef.current = connection.addHandler(onMessage, null, 'message', 'chat');
+      
       connection.send($pres());
     }
 
     return () => {
-      if (connection) {
+      if (connection && messageHandlerRef.current) {
         console.log('Cleaning up message handler');
-        connection.deleteHandler(null, 'message', 'chat');
+        connection.deleteHandler(messageHandlerRef.current);
       }
     };
   }, [connection, onMessage]);
 
-  
-  /**
-   * Handles incoming messages.
-   *
-   * @param {Element} msg - The message element.
-   * @returns {boolean} - Returns true.
-   */
 
   const handleSendMessage = (e) => {
     e.preventDefault();
