@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback} from 'react';
 import { PlusCircle, Users, MessageSquare, LogOut } from 'lucide-react';
-import { Strophe, $pres, $msg } from 'strophe.js';
+import { Strophe, $pres, $msg, $iq  } from 'strophe.js';
 
 const Chat = ({ connection, onLogout }) => {
   const [messages, setMessages] = useState([]);
@@ -13,15 +13,8 @@ const Chat = ({ connection, onLogout }) => {
   const [newContact, setNewContact] = useState('');
   const [newGroup, setNewGroup] = useState('');
 
-  useEffect(() => {
-    if (connection) {
-      console.log('connection ==>> ', connection);
-      connection.addHandler(onMessage, null, 'message', 'chat');
-    }
-  }, [connection]);
-
-  
-  const onMessage = (msg) => {
+  const onMessage = useCallback((msg) => {
+    console.log('msg ==>> ', msg);
     const from = msg.getAttribute('from');
     const type = msg.getAttribute('type');
     const body = msg.getElementsByTagName('body')[0];
@@ -32,7 +25,32 @@ const Chat = ({ connection, onLogout }) => {
     }
 
     return true;
-  };
+  }, []);
+
+  useEffect(() => {
+    if (connection) {
+      console.log('Setting up message handler');
+      connection.addHandler(onMessage, null, 'message', 'chat');
+
+      // Send initial presence to the server
+      connection.send($pres());
+    }
+
+    return () => {
+      if (connection) {
+        console.log('Cleaning up message handler');
+        connection.deleteHandler(null, 'message', 'chat');
+      }
+    };
+  }, [connection, onMessage]);
+
+  
+  /**
+   * Handles incoming messages.
+   *
+   * @param {Element} msg - The message element.
+   * @returns {boolean} - Returns true.
+   */
 
   const handleSendMessage = (e) => {
     e.preventDefault();
@@ -51,15 +69,44 @@ const Chat = ({ connection, onLogout }) => {
   const handleAddContact = (e) => {
     e.preventDefault();
     if (newContact.trim() && !contacts.includes(newContact)) {
-      // Send subscription request
-      const presence = $pres({to: newContact + "@alumchat.lol", type: "subscribe"});
-      connection.send(presence);
-
+      const jid = `${newContact}@alumchat.lol`;
+  
+      // Send a subscription request
+      const presenceSubscribe = $pres({to: jid, type: 'subscribe'});
+      connection.send(presenceSubscribe);
+  
+      // Update the UI
       setContacts([...contacts, newContact]);
       setNewContact('');
       setShowAddContact(false);
+  
+      console.log(`Subscription request sent to ${jid}`);
     }
   };
+  
+  // Handle incoming presence stanzas
+  connection.addHandler((presence) => {
+    const from = presence.getAttribute('from');
+    const type = presence.getAttribute('type');
+    
+    const now = new Date();
+    console.log('Current time:', now);
+
+
+    console.log(`Received presence: ${type} from ${from}`);
+  
+    if (type === 'subscribed') {
+      console.log(`${from} accepted your subscription request`);
+      // You might want to update your UI here
+    } else if (type === 'error') {
+      console.log(`Error in subscription with ${from}`);
+      // Handle the error (e.g., show a message to the user)
+    }
+  
+    return true;
+  }, null, 'presence');
+  
+
 
   const handleCreateGroup = (e) => {
     e.preventDefault();
@@ -98,8 +145,6 @@ const Chat = ({ connection, onLogout }) => {
           </button>
           
 
-
-
         </div>
         <div className="px-4 pb-4">
           <h3 className="font-medium mb-2">Contacts</h3>
@@ -126,7 +171,7 @@ const Chat = ({ connection, onLogout }) => {
           ))}
         </div>
 
-        <div className="absolute bottom-0 w-full p-4">
+        <div className="absolute bottom-0 p-4">
         <button 
             onClick={handleLogout} 
             className="flex items-center text-red-500"

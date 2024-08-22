@@ -43,7 +43,7 @@ const Login = ({ onLogin }) => {
               id="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+              className="mt-2 block h-7 w-full rounded-md border-blue-300 shadow-md"
               required
             />
           </div>
@@ -54,7 +54,7 @@ const Login = ({ onLogin }) => {
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+              className="mt-2 block h-7 w-full rounded-md border-blue-300 shadow-md"
               required
             />
           </div>

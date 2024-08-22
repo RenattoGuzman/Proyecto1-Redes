@@ -1,36 +1,30 @@
 ## 13/08/2024 Avances de Proyecto
 
-
 ### Administración de cuentas (20% del funcionamiento, 5% cada funcionalidad)
 
 ### Progreso: 10%
 
-- [ ] Registrar una nueva cuenta en el servidor  
-- [x] Iniciar sesión con una cuenta  
-- [x] Cerrar sesión con una cuenta  
-- [ ] Eliminar la cuenta del servidor 
-  
-  
+- [ ] Registrar una nueva cuenta en el servidor&emsp; - 5 puntos
+- [x] Iniciar sesión con una cuenta&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; - 5 puntos
+- [x] Cerrar sesión con una cuenta&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  - 5 puntos
+- [ ] Eliminar la cuenta del servidor&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;   - 5 puntos
 
 ### Comunicación (80% del funcionamiento, 10% cada funcionalidad)
 
 ### Progreso: 10%
 
-- [ ] Mostrar todos los contactos y su estado
-  - [ ] Mostrar contactos
-  - [ ] Mostrar estado
-- [ ] Agregar un usuario a los contactos
-  - [x] Agregar un usuario
-  - [ ] Asegurarse  que el usuario exista
-- [ ] Mostrar detalles de contacto de un usuario
-- [ ] Comunicación 1 a 1 con cualquier usuario/contacto
-  - [x] Enviar mensajes
-  - [ ] Recibir mensajes
+- [ ] Mostrar todos los contactos y su estado&emsp;   
+  - [ ] Mostrar contactos&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;- 5 puntos
+  - [ ] Mostrar estado&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;- 5 puntos
+- [x] Agregar un usuario a los contactos                   - 10 puntos
+- [ ] Mostrar detalles de contacto de un usuario&emsp;&emsp;  - 10 puntos
+- [ ] Comunicación 1 a 1 con cualquier usuario/contacto   
+  - [x] Enviar mensajes&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;   - 5 puntos
+  - [x] Recibir mensajes&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  - 5 puntos
 - [ ] Participar en conversaciones grupales
-  - [ ] Agregar contactos a grupos
-- [ ] Definir mensaje de presencia
-- [ ] Enviar/recibir notificaciones
-- [ ] Enviar/recibir archivos
+  - [ ] Agregar contactos a grupos&emsp;&emsp;&emsp;&emsp;- 10 puntos
+- [ ] Definir mensaje de presencia&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;- 10 puntos
+- [ ] Enviar/recibir notificaciones&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;   - 10 puntos
+- [ ] Enviar/recibir archivos&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; - 10 puntos
 
-
-### Total: 20%
+### Total: 30%
