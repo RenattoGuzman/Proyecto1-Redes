@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef} from 'react';
-import { PlusCircle, Users, MessageSquare, LogOut } from 'lucide-react';
+import { PlusCircle, Users, MessageSquare, LogOut, ChevronDown } from 'lucide-react';
 import { Strophe, $pres, $msg, $iq  } from 'strophe.js';
 
 const Chat = ({ connection, onLogout }) => {
@@ -15,6 +15,27 @@ const Chat = ({ connection, onLogout }) => {
 
   const messageHandlerRef = useRef(null);
   const presenceHandlerRef = useRef(null);
+
+  const [userPresence, setUserPresence] = useState('available');
+  const [showPresenceMenu, setShowPresenceMenu] = useState(false);
+
+  const changeUserPresence = (newPresence) => {
+    setUserPresence(newPresence);
+    setShowPresenceMenu(false);
+
+    if (connection) {
+      let pres;
+      if (newPresence === 'available') {
+        pres = $pres();
+      } else if (newPresence === 'offline') {
+        pres = $pres({type: 'unavailable'});
+      } else {
+        pres = $pres().c('show').t(newPresence).up();
+      }
+      connection.send(pres);
+    }
+  };
+
 
   const presenceColors = {
     'available': 'bg-green-500',
@@ -218,6 +239,8 @@ const Chat = ({ connection, onLogout }) => {
     if (connection) {
       connection.disconnect();
     }
+
+    changeUserPresence('offline');
     onLogout();
   };
 
@@ -226,8 +249,35 @@ const Chat = ({ connection, onLogout }) => {
     <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
       <div className="w-64 bg-white border-r">
+
+      <div className="p-4 border-b relative">
+          <div 
+            className="flex items-center cursor-pointer"
+            onClick={() => setShowPresenceMenu(!showPresenceMenu)}
+          >
+            <div className={`w-3 h-3 rounded-full mr-2 ${presenceColors[userPresence]}`}></div>
+            <span className="flex-grow">{presenceLabels[userPresence]}</span>
+            <ChevronDown size={18} />
+          </div>
+          {showPresenceMenu && (
+            <div className="absolute top-full left-0 right-0 bg-white border shadow-lg z-10">
+              {Object.entries(presenceLabels).map(([key, label]) => (
+                <div 
+                  key={key}
+                  className="flex items-center p-2 hover:bg-gray-100 cursor-pointer"
+                  onClick={() => changeUserPresence(key)}
+                >
+                  <div className={`w-3 h-3 rounded-full mr-2 ${presenceColors[key]}`}></div>
+                  {label}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+
         <div className="p-4">
-          <h2 className="text-xl font-semibold mb-4">Chats</h2>
+          <h2 className="text-xl font-semibold mb-4">NetChat</h2>
           <button 
             onClick={() => setShowAddContact(true)} 
             className="flex items-center text-blue-500 mb-2"
