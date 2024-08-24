@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import Login from './components/Login';
 import Chat from './components/Chat';
-import Chat1 from './components/Chat1';
 
 import { Buffer } from 'buffer';
 window.Buffer = Buffer;

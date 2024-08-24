@@ -14,9 +14,83 @@ const Chat = ({ connection, onLogout }) => {
   const [newGroup, setNewGroup] = useState('');
 
   const messageHandlerRef = useRef(null);
+  const presenceHandlerRef = useRef(null);
 
+  const presenceColors = {
+    'available': 'bg-green-500',
+    'away': 'bg-yellow-500',
+    'dnd': 'bg-red-500',
+    'xa': 'bg-orange-500',
+    'offline': 'bg-gray-500'
+  };
+
+  const presenceLabels = {
+    'available': 'Disponible',
+    'away': 'Ausente',
+    'dnd': 'No Disponible',
+    'xa': 'Ocupado',
+    'offline': 'Desconectado'
+  };
+
+
+  const fetchRoster = useCallback(() => {
+    if (connection) {
+      const iq = $iq({type: 'get'}).c('query', {xmlns: 'jabber:iq:roster'});
+      
+      connection.sendIQ(iq, (iqResult) => {
+        const items = iqResult.getElementsByTagName('item');
+        const rosterContacts = Array.from(items).map(item => ({
+          jid: item.getAttribute('jid'),
+          name: item.getAttribute('name') || Strophe.getNodeFromJid(item.getAttribute('jid')),
+          status: 'offline'
+        }));
+
+        rosterContacts.forEach(contact => {
+          connection.send($pres({ to: contact.jid, type: 'probe' }));
+        });
+        
+
+        setContacts(rosterContacts);
+  
+        console.log('Roster fetched:', rosterContacts);
+
+      }, (error) => {
+        console.error('Error fetching roster:', error);
+      });
+
+      console.log('contacts ==>> ', contacts);
+    }
+  }, [connection]);
+
+  const onPresence = useCallback((presence) => {
+    const from = presence.getAttribute('from');
+    const type = presence.getAttribute('type');
+    const show = presence.getElementsByTagName('show')[0]?.textContent;
+    const bareJid = Strophe.getBareJidFromJid(from);
+  
+    let status;
+    if (type === 'unavailable') {
+      status = 'offline';
+    } else if (show) {
+      status = show;
+    } else {
+      status = 'available';
+    }
+
+    setContacts(prevContacts => 
+      prevContacts.map(contact => 
+        contact.jid === bareJid
+          ? { ...contact, status }
+          : contact
+      )
+    );
+
+  
+    return true;
+  }, []);
+
+  
   const onMessage = useCallback((msg) => {
-    console.log('msg ==>> ', msg);
     const from = msg.getAttribute('from');
     const type = msg.getAttribute('type');
     const body = msg.getElementsByTagName('body')[0];
@@ -35,6 +109,8 @@ const Chat = ({ connection, onLogout }) => {
         }
         return prev;
       });
+      console.log('contacts ==>> ', contacts);
+
     }
 
     return true;
@@ -42,7 +118,7 @@ const Chat = ({ connection, onLogout }) => {
 
   useEffect(() => {
     if (connection) {
-      console.log('Setting up message handler');
+      console.log('Setting up message handler and presence handlers, and fetching roster');
       
       // Remove the previous handler if it exists
       if (messageHandlerRef.current) {
@@ -51,17 +127,26 @@ const Chat = ({ connection, onLogout }) => {
       
       // Add the new handler and store its reference
       messageHandlerRef.current = connection.addHandler(onMessage, null, 'message', 'chat');
-      
+      presenceHandlerRef.current = connection.addHandler(onPresence, null, 'presence');
+
       connection.send($pres());
+      console.log('contacts ==>> ', contacts);
+
+      fetchRoster();
+
     }
 
     return () => {
-      if (connection && messageHandlerRef.current) {
-        console.log('Cleaning up message handler');
-        connection.deleteHandler(messageHandlerRef.current);
+      if (connection) {
+        if (messageHandlerRef.current) {
+          connection.deleteHandler(messageHandlerRef.current);
+        }
+        if (presenceHandlerRef.current) {
+          connection.deleteHandler(presenceHandlerRef.current);
+        }
       }
     };
-  }, [connection, onMessage]);
+  }, [connection, onMessage,onPresence, fetchRoster]);
 
 
   const handleSendMessage = (e) => {
@@ -72,7 +157,7 @@ const Chat = ({ connection, onLogout }) => {
         .t(newMessage);
       
       connection.send(message);
-
+      
       setMessages([...messages, { text: newMessage, sender: 'user', chat: selectedChat }]);
       setNewMessage('');
     }
@@ -164,10 +249,14 @@ const Chat = ({ connection, onLogout }) => {
             <div 
               key={index} 
               className="flex items-center mb-2 cursor-pointer hover:bg-gray-100 p-2 rounded"
-              onClick={() => setSelectedChat(contact + "@alumchat.lol")}
+              onClick={() => setSelectedChat(contact.jid)}
             >
+              <div 
+                className={`w-2 h-2 rounded-full mr-2 ${presenceColors[contact.status] || 'bg-gray-500'}`} 
+                title={presenceLabels[contact.status] || 'Desconocido'}
+              ></div>
               <MessageSquare size={18} className="mr-2 text-gray-500" />
-              {contact}
+              {contact.name}
             </div>
           ))}
           <h3 className="font-medium mb-2 mt-4">Groups</h3>

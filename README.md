@@ -13,9 +13,9 @@
 
 ### Progreso: 10%
 
-- [ ] Mostrar todos los contactos y su estado&emsp;   
-  - [ ] Mostrar contactos&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;- 5 puntos
-  - [ ] Mostrar estado&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;- 5 puntos
+- [x] Mostrar todos los contactos y su estado&emsp;   
+  - [x] Mostrar contactos&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;- 5 puntos
+  - [x] Mostrar estado&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;- 5 puntos
 - [x] Agregar un usuario a los contactos                   - 10 puntos
 - [ ] Mostrar detalles de contacto de un usuario&emsp;&emsp;  - 10 puntos
 - [x] Comunicación 1 a 1 con cualquier usuario/contacto   
@@ -27,4 +27,4 @@
 - [ ] Enviar/recibir notificaciones&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;   - 10 puntos
 - [ ] Enviar/recibir archivos&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; - 10 puntos
 
-### Total: 30%
+### Total: 40%
