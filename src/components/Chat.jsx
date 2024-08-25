@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef} from 'react';
 import { PlusCircle, Users, MessageSquare, LogOut, ChevronDown } from 'lucide-react';
 import { Strophe, $pres, $msg, $iq  } from 'strophe.js';
+import Notification from './Notification';
+import ContactRequest from './ContactRequest';
 
 const Chat = ({ connection, onLogout }) => {
   const [messages, setMessages] = useState([]);
@@ -18,6 +20,7 @@ const Chat = ({ connection, onLogout }) => {
   const groupMessageHandlerRef = useRef(null);
   const messageHandlerRef = useRef(null);
   const presenceHandlerRef = useRef(null);
+  const invitationHandlerRef = useRef(null);
 
   // User presence
   const [userPresence, setUserPresence] = useState('available');
@@ -26,6 +29,29 @@ const Chat = ({ connection, onLogout }) => {
   // Contact details
   const [showContactDetails, setShowContactDetails] = useState(false);
   const [selectedContactDetails, setSelectedContactDetails] = useState(null);
+
+  // Notifications
+  const [notifications, setNotifications] = useState([]);
+
+  //Contact Requests
+  const [contactRequests, setContactRequests] = useState([]);
+
+  const addNotification = useCallback((message, type) => {
+    const id = Date.now();
+    setNotifications(prev => {
+      if (prev.some(notif => notif.message === message && notif.type === type)) {
+        return prev;
+      }
+      return [...prev, { id, message, type }];
+    });
+  }, []);
+
+  
+  const removeNotification = (id) => {
+    setNotifications(prev => prev.filter(notif => notif.id !== id));
+  };
+    
+  
 
   const fetchContactDetails = useCallback((jid) => {
     const contact = contacts.find(c => c.jid === jid);
@@ -151,6 +177,13 @@ const Chat = ({ connection, onLogout }) => {
     const statusElement = presence.getElementsByTagName('status')[0];
     const statusMessage = statusElement ? statusElement.textContent : '';
 
+    if (type === 'subscribe') {
+      //addNotification(`${Strophe.getNodeFromJid(from)} quiere añadirte como contacto`, 'request');
+      setContactRequests(prev => [...prev, bareJid]);
+      return true;
+    }
+  
+
     let status;
     if (type === 'unavailable') {
       status = 'offline';
@@ -168,11 +201,23 @@ const Chat = ({ connection, onLogout }) => {
       )
     );
 
-  
     return true;
-  }, []);
+  }, [addNotification]);
 
-  
+  const handleAcceptContact = useCallback((jid) => {
+    connection.send($pres({ to: jid, type: 'subscribed' }));
+    connection.send($pres({ to: jid, type: 'subscribe' }));
+    setContactRequests(prev => prev.filter(request => request !== jid));
+    setContacts(prev => [...prev, { jid, name: Strophe.getNodeFromJid(jid), status: 'offline' }]);
+  }, [connection]);
+
+  const handleRejectContact = useCallback((jid) => {
+    connection.send($pres({ to: jid, type: 'unsubscribed' }));
+    setContactRequests(prev => prev.filter(request => request !== jid));
+  }, [connection]);
+
+
+
   const onMessage = useCallback((msg) => {
     const from = msg.getAttribute('from');
     const type = msg.getAttribute('type');
@@ -190,6 +235,11 @@ const Chat = ({ connection, onLogout }) => {
           m.chat === Strophe.getBareJidFromJid(fromJid)
         );
         if (!isDuplicate) {
+          const notifMessage = type === "groupchat" 
+            ? `Nuevo mensaje en ${Strophe.getNodeFromJid(fromJid)} de ${senderNick}`
+            : `Nuevo mensaje de ${Strophe.getNodeFromJid(from)}`;
+          addNotification(notifMessage, 'message');
+
           return [...prev, { 
             text: messageText, 
             sender: type === "groupchat" ? senderNick : 'bot', 
@@ -201,24 +251,45 @@ const Chat = ({ connection, onLogout }) => {
     }
   
     return true;
-  }, []);
+  }, [addNotification]);
+  
+  const onInvitation = useCallback((msg) => {
+    const from = msg.getAttribute('from');
+    const room = Strophe.getBareJidFromJid(from);
+    const inviter = msg.getElementsByTagName('invite')[0]?.getAttribute('from');
+  
+    if (room && inviter) {
+      addNotification(`${Strophe.getNodeFromJid(inviter)} te ha invitado a unirte a ${Strophe.getNodeFromJid(room)}`, 'invitation');
+    }
+  
+    return true;
+  }, [addNotification]);
   
   
   useEffect(() => {
     if (connection) {
       console.log('Setting up message handler and presence handlers, fetching roster, and groups');
       
-      // Remove the previous handler if it exists
+      // Eliminar manejadores existentes
       if (messageHandlerRef.current) {
         connection.deleteHandler(messageHandlerRef.current);
       }
-      
+      if (groupMessageHandlerRef.current) {
+        connection.deleteHandler(groupMessageHandlerRef.current);
+      }
+      if (presenceHandlerRef.current) {
+        connection.deleteHandler(presenceHandlerRef.current);
+      }
+      if (invitationHandlerRef.current) {
+        connection.deleteHandler(invitationHandlerRef.current);
+      }
 
-      // Add the new handler and store its reference
+      // Añadir nuevos manejadores
       messageHandlerRef.current = connection.addHandler(onMessage, null, 'message', 'chat');
       groupMessageHandlerRef.current = connection.addHandler(onMessage, null, 'message', 'groupchat');
       presenceHandlerRef.current = connection.addHandler(onPresence, null, 'presence');
-      
+      invitationHandlerRef.current = connection.addHandler(onInvitation, 'jabber:x:conference', 'message');
+
       connection.send($pres());
 
       fetchRoster();
@@ -236,9 +307,12 @@ const Chat = ({ connection, onLogout }) => {
         if (presenceHandlerRef.current) {
           connection.deleteHandler(presenceHandlerRef.current);
         }
+        if (invitationHandlerRef.current) {
+          connection.deleteHandler(invitationHandlerRef.current);
+        }
       }
     };
-  }, [connection, onMessage,onPresence, fetchRoster, fetchGroups]);
+  }, [connection, onMessage, onPresence, onInvitation, fetchRoster, fetchGroups]);
 
 
   const handleSendMessage = (e) => {
@@ -290,27 +364,27 @@ const Chat = ({ connection, onLogout }) => {
     }
   };
   
-  // Handle incoming presence stanzas
-  connection.addHandler((presence) => {
-    const from = presence.getAttribute('from');
-    const type = presence.getAttribute('type');
+  // // Handle incoming presence stanzas
+  // connection.addHandler((presence) => {
+  //   const from = presence.getAttribute('from');
+  //   const type = presence.getAttribute('type');
     
-    // const now = new Date();
-    // console.log('Current time:', now);
-    // console.log(`Received presence: ${type} from ${from}`);
+  //   // const now = new Date();
+  //   // console.log('Current time:', now);
+  //   // console.log(`Received presence: ${type} from ${from}`);
 
 
   
-    if (type === 'subscribed') {
-      console.log(`${from} accepted your subscription request`);
-      // You might want to update your UI here
-    } else if (type === 'error') {
-      console.log(`Error in subscription with ${from}`);
-      // Handle the error (e.g., show a message to the user)
-    }
+  //   // if (type === 'subscribed') {
+  //   //   console.log(`${from} accepted your subscription request`);
+  //   //   // You might want to update your UI here
+  //   // } else if (type === 'error') {
+  //   //   console.log(`Error in subscription with ${from}`);
+  //   //   // Handle the error (e.g., show a message to the user)
+  //   // }
   
-    return true;
-  }, null, 'presence');
+  //   return true;
+  // }, null, 'presence');
   
 
 
@@ -554,6 +628,26 @@ const Chat = ({ connection, onLogout }) => {
           </div>
         </div>
       )}
+      {notifications.map(notif => (
+      <Notification
+        key={notif.id}
+        message={notif.message}
+        type={notif.type}
+        onClose={() => removeNotification(notif.id)}
+      />
+      ))}
+
+      {contactRequests.map(jid => (
+        <ContactRequest
+          key={jid}
+          from={Strophe.getNodeFromJid(jid)}
+          onAccept={() => handleAcceptContact(jid)}
+          onReject={() => handleRejectContact(jid)}
+        />
+      ))}
+
+
+      
     </div>
   );
 };

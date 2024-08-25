@@ -23,7 +23,7 @@
   - [x] Recibir mensajes&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  - 5 puntos
 - [x] Participar en conversaciones grupales     -10 puntos
 - [x] Definir mensaje de presencia&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;- 10 puntos
-- [ ] Enviar/recibir notificaciones&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;   - 10 puntos
+- [x] Enviar/recibir notificaciones&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;   - 10 puntos
 - [ ] Enviar/recibir archivos&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; - 10 puntos
 
-### Total: 70%
+### Total: 80%
