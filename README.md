@@ -17,14 +17,13 @@
   - [x] Mostrar contactos&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;- 5 puntos
   - [x] Mostrar estado&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;- 5 puntos
 - [x] Agregar un usuario a los contactos                   - 10 puntos
-- [ ] Mostrar detalles de contacto de un usuario&emsp;&emsp;  - 10 puntos
+- [x] Mostrar detalles de contacto de un usuario&emsp;&emsp;  - 10 puntos
 - [x] Comunicación 1 a 1 con cualquier usuario/contacto   
   - [x] Enviar mensajes&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;   - 5 puntos
   - [x] Recibir mensajes&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  - 5 puntos
-- [ ] Participar en conversaciones grupales
-  - [ ] Agregar contactos a grupos&emsp;&emsp;&emsp;&emsp;- 10 puntos
+- [x] Participar en conversaciones grupales     -10 puntos
 - [x] Definir mensaje de presencia&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;- 10 puntos
 - [ ] Enviar/recibir notificaciones&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;   - 10 puntos
 - [ ] Enviar/recibir archivos&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; - 10 puntos
 
-### Total: 50%
+### Total: 70%
