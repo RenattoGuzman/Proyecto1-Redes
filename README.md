@@ -1,4 +1,4 @@
-## 13/08/2024 Avances de Proyecto
+## 25/08/2024 Avances de Proyecto
 
 ### Administración de cuentas (20% del funcionamiento, 5% cada funcionalidad)
 
