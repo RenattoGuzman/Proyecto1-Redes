@@ -1,29 +1,78 @@
-## 25/08/2024 Avances de Proyecto
+# 🎉 NetChat - A Real-time Chat Application
 
-### Administración de cuentas (20% del funcionamiento, 5% cada funcionalidad)
+Welcome to **NetChat**, a modern real-time chat application built with React and Strophe.js! This application allows users to communicate through individual and group chats, send files, and manage contacts seamlessly. 
 
-### Progreso: 10%
+## 🚀 Features
 
-- [ ] Registrar una nueva cuenta en el servidor&emsp; - 5 puntos
-- [x] Iniciar sesión con una cuenta&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; - 5 puntos
-- [x] Cerrar sesión con una cuenta&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  - 5 puntos
-- [ ] Eliminar la cuenta del servidor&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;   - 5 puntos
+- **Real-time Messaging**: Send and receive messages instantly.
+- **Group Chat Support**: Create and manage group chats effortlessly.
+- **File Sharing**: Upload and share files within chats.
+- **Contact Management**: Add, view, and manage your contacts.
+- **User Presence**: See the availability status of your contacts.
+- **Notifications**: Receive notifications for messages and contact requests.
 
-### Comunicación (80% del funcionamiento, 10% cada funcionalidad)
+## 🛠️ Tech Stack
 
-### Progreso: 10%
+- **Frontend**: React.js
+- **WebSocket Communication**: Strophe.js
+- **Icons**: Lucide-react
 
-- [x] Mostrar todos los contactos y su estado&emsp;   
-  - [x] Mostrar contactos&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;- 5 puntos
-  - [x] Mostrar estado&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;- 5 puntos
-- [x] Agregar un usuario a los contactos                   - 10 puntos
-- [x] Mostrar detalles de contacto de un usuario&emsp;&emsp;  - 10 puntos
-- [x] Comunicación 1 a 1 con cualquier usuario/contacto   
-  - [x] Enviar mensajes&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;   - 5 puntos
-  - [x] Recibir mensajes&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  - 5 puntos
-- [x] Participar en conversaciones grupales     -10 puntos
-- [x] Definir mensaje de presencia&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;- 10 puntos
-- [x] Enviar/recibir notificaciones&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;   - 10 puntos
-- [ ] Enviar/recibir archivos&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; - 10 puntos
+## 📥 Getting Started
 
-### Total: 80%
+### Prerequisites
+
+- Node.js
+- npm
+
+## 📦 Installation
+
+1. Clone the repository:
+  ```bash
+  git clone https://github.com/RenattoGuzman/Proyecto1-Redes/
+    
+  cd Proyecto1-Redes
+  ```
+2. Install dependencies:
+
+  ```bash
+  npm install
+  ```
+
+3. Start the application:
+```
+npm run dev
+```
+
+Open your browser and navigate to http://localhost:5175.
+
+
+## 📖 Usage
+
+- Login with your credentials.
+
+- Add Contacts by entering their usernames.
+
+- Start Chatting by selecting a contact or a group from the sidebar.
+
+- Send Files by using the file upload option in the chat area.
+
+- Manage Your Account: Logout and delete your account.
+
+## 🖼️ Screenshots
+
+### - Login
+
+<img src="./screenshots/LOGIN.png" alt="Login">
+
+
+### - Home
+
+<img src="./screenshots/INICIO.png" alt="Home">
+
+### - Sending Files and Notifications
+
+<img src="./screenshots/NOTS.png" alt="Sending Files">
+
+### - Adding new contact
+
+<img src="./screenshots/CONTACT.png" alt="New contact">
