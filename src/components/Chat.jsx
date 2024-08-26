@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef} from 'react';
-import { PlusCircle, Users, MessageSquare, LogOut, ChevronDown, Trash2 } from 'lucide-react';
+import { PlusCircle, Users, MessageSquare, LogOut,Paperclip, ChevronDown, Trash2 } from 'lucide-react';
 import { Strophe, $pres, $msg, $iq  } from 'strophe.js';
 import Notification from './Notification';
 import ContactRequest from './ContactRequest';
 import DeleteAccountModal from './DeleteAccount';
+import FileUpload from './FileUpload';
 
 const Chat = ({ connection, onLogout }) => {
   const [messages, setMessages] = useState([]);
@@ -38,6 +39,9 @@ const Chat = ({ connection, onLogout }) => {
   //Delete account modal
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
+  //File Upload
+  
+
   const handleDeleteAccount = useCallback(() => {
     setShowDeleteModal(true);
   }, []);
@@ -65,6 +69,44 @@ const Chat = ({ connection, onLogout }) => {
     setShowDeleteModal(false);
   }, [connection, onLogout]);
 
+
+  const handleFileUpload = (file) => {
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64 = event.target.result.split(',')[1]; // Remove the data URL prefix
+        sendFile(file.name, base64);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  
+  const sendFile = (fileName, base64Content) => {
+    if (selectedChat) {
+      const fileMessage = {
+        type: 'file',
+        fileName: fileName,
+        content: base64Content
+      };
+      
+      const message = $msg({to: selectedChat, type: 'chat'})
+        .c('body').t(JSON.stringify(fileMessage)).up()
+        .c('active', {xmlns: 'http://jabber.org/protocol/chatstates'});
+      
+      connection.send(message);
+      
+      setMessages(prev => [...prev, { 
+        type: 'file', 
+        fileName: fileName, 
+        sender: 'user', 
+        chat: selectedChat 
+      }]);
+  
+      addNotification(`Archivo enviado: ${fileName}`, 'file');
+    }
+  };
+  
+  
 
   const addNotification = useCallback((message, type) => {
     const id = Date.now();
@@ -255,34 +297,75 @@ const Chat = ({ connection, onLogout }) => {
   
     if ((type === "chat" || type === "groupchat") && body) {
       const messageText = body.textContent;
-      const fromJid = type === "groupchat" ? Strophe.getBareJidFromJid(from) : from;
-      const senderNick = type === "groupchat" ? Strophe.getResourceFromJid(from) : null;
+      const fromJid = Strophe.getBareJidFromJid(from);
+      const senderNick = type === "groupchat" ? Strophe.getResourceFromJid(from) : 'bot';
   
-      setMessages(prev => {
-        const isDuplicate = prev.some(m => 
-          m.text === messageText && 
-          m.sender === (type === "groupchat" ? senderNick : 'bot') && 
-          m.chat === Strophe.getBareJidFromJid(fromJid)
-        );
-        if (!isDuplicate) {
-          const notifMessage = type === "groupchat" 
-            ? `Nuevo mensaje en ${Strophe.getNodeFromJid(fromJid)} de ${senderNick}`
-            : `Nuevo mensaje de ${Strophe.getNodeFromJid(from)}`;
-          addNotification(notifMessage, 'message');
-
-          return [...prev, { 
-            text: messageText, 
-            sender: type === "groupchat" ? senderNick : 'bot', 
-            chat: Strophe.getBareJidFromJid(fromJid)
-          }];
+      try {
+        const fileMessage = JSON.parse(messageText);
+        if (fileMessage.type === 'file') {
+          // Es un mensaje de archivo
+          setMessages(prev => [...prev, { 
+            type: 'file', 
+            fileName: fileMessage.fileName, 
+            content: fileMessage.content,
+            sender: senderNick, 
+            chat: fromJid
+          }]);
+          addNotification(`Archivo recibido: ${fileMessage.fileName}`, 'file');
+        } else {
+          // Es un mensaje de texto normal
+          setMessages(prev => {
+            const isDuplicate = prev.some(m => 
+              m.text === messageText && 
+              m.sender === senderNick && 
+              m.chat === fromJid
+            );
+            if (!isDuplicate) {
+              return [...prev, { 
+                text: messageText, 
+                sender: senderNick, 
+                chat: fromJid
+              }];
+            }
+            return prev;
+          });
+          addNotification(`Nuevo mensaje de ${Strophe.getNodeFromJid(from)}`, 'message');
         }
-        return prev;
-      });
+      } catch (e) {
+        // Si no se puede parsear como JSON, tratarlo como mensaje de texto normal
+        setMessages(prev => {
+          const isDuplicate = prev.some(m => 
+            m.text === messageText && 
+            m.sender === senderNick && 
+            m.chat === fromJid
+          );
+          if (!isDuplicate) {
+            return [...prev, { 
+              text: messageText, 
+              sender: senderNick, 
+              chat: fromJid
+            }];
+          }
+          return prev;
+        });
+        addNotification(`Nuevo mensaje de ${Strophe.getNodeFromJid(from)}`, 'message');
+      }
     }
   
     return true;
   }, [addNotification]);
   
+  
+    const downloadFile = (fileName, content) => {
+      const link = document.createElement('a');
+      link.href = `data:application/octet-stream;base64,${content}`;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
+
+
   const onInvitation = useCallback((msg) => {
     const from = msg.getAttribute('from');
     const room = Strophe.getBareJidFromJid(from);
@@ -439,7 +522,16 @@ const Chat = ({ connection, onLogout }) => {
       {/* Sidebar */}
       <div className="w-64 bg-white border-r">
 
+      <div className="m-5 ml-11 ">
+          <h1 className="text-3xl font-bold mb-4">NetChat</h1>
+        </div>
       <div className="p-4 border-b relative">
+      <button 
+            onClick={() => setShowAddContact(true)} 
+            className="flex items-center text-blue-500 mb-2"
+          >
+            <PlusCircle size={18} className="mr-2" /> Add Contact
+          </button>
           <div 
             className="flex items-center cursor-pointer"
             onClick={() => setShowPresenceMenu(!showPresenceMenu)}
@@ -465,17 +557,7 @@ const Chat = ({ connection, onLogout }) => {
         </div>
 
 
-        <div className="p-4">
-          <h2 className="text-xl font-semibold mb-4">NetChat</h2>
-          <button 
-            onClick={() => setShowAddContact(true)} 
-            className="flex items-center text-blue-500 mb-2"
-          >
-            <PlusCircle size={18} className="mr-2" /> Add Contact
-          </button>
-          
 
-        </div>
         <div className="px-4 pb-4">
           <h3 className="font-medium mb-2">Contacts</h3>
           {contacts.map((contact, index) => (
@@ -541,21 +623,36 @@ const Chat = ({ connection, onLogout }) => {
               </h2>
             </div>
             <div className="flex-1 overflow-y-auto p-4">
-              {messages
-                .filter(message => message.chat === selectedChat)
-                .map((message, index) => (
-                  <div key={index} className={`mb-4 ${message.sender === 'user' ? 'text-right' : 'text-left'}`}>
-                    <div className={`inline-block p-2 rounded-lg ${message.sender === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-black'}`}>
-                      {groups.some(group => group.jid === selectedChat) && message.sender !== 'user' && (
-                        <span className="font-bold">{message.sender}: </span>
-                      )}
-                      {message.text}
+            {messages
+              .filter(message => message.chat === selectedChat)
+              .map((message, index) => (
+                <div key={index} className={`mb-4 ${message.sender === 'user' ? 'text-right' : 'text-left'}`}>
+                  <div className={`inline-block p-2 rounded-lg ${message.sender === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-black'}`}>
+                    {groups.some(group => group.jid === selectedChat) && message.sender !== 'user' && (
+                      <span className="font-bold">{message.sender}: </span>
+                    )}
+                    {message.type === 'file' ? (
+                      <div className='flex p-2'>
+                        <Paperclip size={20} className="mr-2"/>
+                        {message.content && (
+                          <button 
+                            onClick={() => downloadFile(message.fileName, message.content)}
+                            className="text-sm underline"
+                          >
+                            {message.fileName}
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      message.text
+                    )}
+
                     </div>
                   </div>
                 ))}
             </div>
             <form onSubmit={handleSendMessage} className="bg-white p-4">
-              <div className="flex">
+              <div className="flex items-center">
                 <input
                   type="text"
                   value={newMessage}
@@ -563,7 +660,11 @@ const Chat = ({ connection, onLogout }) => {
                   className="flex-1 border rounded-l-lg p-2"
                   placeholder="Type a message..."
                 />
-                <button type="submit" className="bg-blue-500 text-white p-2 rounded-r-lg">Send</button>
+                <div className="p-2">
+                  <FileUpload onFileSelect={handleFileUpload} />
+                </div>
+
+                <button type="submit" className="bg-blue-500 text-white p-2 rounded-r-lg" onClick={handleSendMessage}>Send</button>
               </div>
             </form>
           </>
