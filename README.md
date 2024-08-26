@@ -1,6 +1,6 @@
-# 🎉 NetChat - A Real-time Chat Application
+# 🕸️ NetChat - A Real-time Chat Application 🕸️
 
-Welcome to **NetChat**, a modern real-time chat application built with React and Strophe.js! This application allows users to communicate through individual and group chats, send files, and manage contacts seamlessly. 
+Welcome to **NetChat**, a modern real-time chat application built with React and Strophe.js! This application allows users to communicate through individual and group chats, send files, and manage contacts seamlessly, by using the XMPP protocol.
 
 ## 🚀 Features
 
