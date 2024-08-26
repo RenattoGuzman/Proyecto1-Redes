@@ -1,18 +1,17 @@
 import React, { useState, useEffect, useCallback, useRef} from 'react';
-import { PlusCircle, Users, MessageSquare, LogOut, ChevronDown } from 'lucide-react';
+import { PlusCircle, Users, MessageSquare, LogOut, ChevronDown, Trash2 } from 'lucide-react';
 import { Strophe, $pres, $msg, $iq  } from 'strophe.js';
 import Notification from './Notification';
 import ContactRequest from './ContactRequest';
+import DeleteAccountModal from './DeleteAccount';
 
 const Chat = ({ connection, onLogout }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [contacts, setContacts] = useState([]);
   const [groups, setGroups] = useState([]);
-  //const [groups, setGroups] = useState(['Family', 'Work']);
   const [selectedChat, setSelectedChat] = useState(null);
   const [showAddContact, setShowAddContact] = useState(false);
-  const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [newContact, setNewContact] = useState('');
   const [newGroup, setNewGroup] = useState('');
 
@@ -35,6 +34,37 @@ const Chat = ({ connection, onLogout }) => {
 
   //Contact Requests
   const [contactRequests, setContactRequests] = useState([]);
+
+  //Delete account modal
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  const handleDeleteAccount = useCallback(() => {
+    setShowDeleteModal(true);
+  }, []);
+
+  const confirmDeleteAccount = useCallback(() => {
+    if (connection) {
+      // Enviar una solicitud IQ para eliminar la cuenta
+      const iq = $iq({
+        type: 'set',
+        to: connection.domain,
+      }).c('query', { xmlns: 'jabber:iq:register' })
+        .c('remove');
+
+      connection.sendIQ(iq, 
+        () => {
+          // Éxito: la cuenta ha sido eliminada
+          onLogout();
+        },
+        (error) => {
+          // Error al eliminar la cuenta
+          console.error('Error al eliminar la cuenta:', error);
+        }
+      );
+    }
+    setShowDeleteModal(false);
+  }, [connection, onLogout]);
+
 
   const addNotification = useCallback((message, type) => {
     const id = Date.now();
@@ -284,7 +314,7 @@ const Chat = ({ connection, onLogout }) => {
         connection.deleteHandler(invitationHandlerRef.current);
       }
 
-      // Añadir nuevos manejadores
+      // Añadir manejadores
       messageHandlerRef.current = connection.addHandler(onMessage, null, 'message', 'chat');
       groupMessageHandlerRef.current = connection.addHandler(onMessage, null, 'message', 'groupchat');
       presenceHandlerRef.current = connection.addHandler(onPresence, null, 'presence');
@@ -324,13 +354,11 @@ const Chat = ({ connection, onLogout }) => {
         message = $msg({to: selectedChat, type: 'groupchat'})
         .c('body')
         .t(newMessage);
-        //console.log('message de Grupo==>> ', message);
       } else {
         // Mensaje individual
         message = $msg({to: selectedChat, type: 'chat'})
           .c('body')
           .t(newMessage);
-        //console.log('message ==>> ', message);
       }
       
       connection.send(message);
@@ -363,39 +391,7 @@ const Chat = ({ connection, onLogout }) => {
       console.log(`Subscription request sent to ${jid}`);
     }
   };
-  
-  // // Handle incoming presence stanzas
-  // connection.addHandler((presence) => {
-  //   const from = presence.getAttribute('from');
-  //   const type = presence.getAttribute('type');
-    
-  //   // const now = new Date();
-  //   // console.log('Current time:', now);
-  //   // console.log(`Received presence: ${type} from ${from}`);
 
-
-  
-  //   // if (type === 'subscribed') {
-  //   //   console.log(`${from} accepted your subscription request`);
-  //   //   // You might want to update your UI here
-  //   // } else if (type === 'error') {
-  //   //   console.log(`Error in subscription with ${from}`);
-  //   //   // Handle the error (e.g., show a message to the user)
-  //   // }
-  
-  //   return true;
-  // }, null, 'presence');
-  
-
-
-  const handleCreateGroup = (e) => {
-    e.preventDefault();
-    if (newGroup.trim() && !groups.includes(newGroup)) {
-      setGroups([...groups, newGroup]);
-      setNewGroup('');
-      setShowCreateGroup(false);
-    }
-  };
 
   const handleLogout = () => {
     if (connection) {
@@ -414,7 +410,6 @@ const Chat = ({ connection, onLogout }) => {
   };
   
   // Code for the ContactDetailsModal component
-
   const ContactDetailsModal = ({ contact, onClose }) => {
     if (!contact) return null;
     const tempStatus = contact.status;
@@ -478,12 +473,6 @@ const Chat = ({ connection, onLogout }) => {
           >
             <PlusCircle size={18} className="mr-2" /> Add Contact
           </button>
-          <button 
-            onClick={() => setShowCreateGroup(true)} 
-            className="flex items-center text-blue-500 mb-2"
-          >
-            <Users size={18} className="mr-2" /> Create Group
-          </button>
           
 
         </div>
@@ -516,14 +505,21 @@ const Chat = ({ connection, onLogout }) => {
           ))}
         </div>
 
-        <div className="absolute bottom-0 p-4">
-        <button 
+        <div className="absolute bottom-0 p-4 space-y-2">
+          <button 
             onClick={handleLogout} 
             className="flex items-center text-red-500"
           >
             <LogOut size={18} className="mr-2" /> Logout
           </button>
+          <button 
+            onClick={handleDeleteAccount} 
+            className="flex items-center text-red-500"
+          >
+            <Trash2 size={18} className="mr-2" /> Eliminar Cuenta
+          </button>
         </div>
+
 
       </div>
 
@@ -606,28 +602,6 @@ const Chat = ({ connection, onLogout }) => {
           onClose={() => setShowContactDetails(false)}
         />
       )}
-
-      {/* Create Group Modal */}
-      {showCreateGroup && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-4 rounded-lg">
-            <h3 className="text-lg font-semibold mb-4">Create New Group</h3>
-            <form onSubmit={handleCreateGroup}>
-              <input
-                type="text"
-                value={newGroup}
-                onChange={(e) => setNewGroup(e.target.value)}
-                className="border rounded p-2 mb-4 w-full"
-                placeholder="Group name"
-              />
-              <div className="flex justify-end">
-                <button type="button" onClick={() => setShowCreateGroup(false)} className="mr-2 px-4 py-2 text-gray-500">Cancel</button>
-                <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded">Create</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
       {notifications.map(notif => (
       <Notification
         key={notif.id}
@@ -645,6 +619,12 @@ const Chat = ({ connection, onLogout }) => {
           onReject={() => handleRejectContact(jid)}
         />
       ))}
+      {showDeleteModal && (
+        <DeleteAccountModal
+          onConfirm={confirmDeleteAccount}
+          onCancel={() => setShowDeleteModal(false)}
+        />
+      )}
 
 
       
